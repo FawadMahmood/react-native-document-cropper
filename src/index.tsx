@@ -1,4 +1,5 @@
 import { NativeModules, Platform } from 'react-native';
+import ImageCropper from './ImageCropper';
 
 const LINKING_ERROR =
   `The package 'react-native-document-cropper' doesn't seem to be linked. Make sure: \n\n` +
@@ -27,3 +28,5 @@ const DocumentCropper = DocumentCropperModule
 export function multiply(a: number, b: number): Promise<number> {
   return DocumentCropper.multiply(a, b);
 }
+
+export default ImageCropper;
