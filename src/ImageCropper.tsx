@@ -11,13 +11,21 @@ import {
   createPanResponder,
 } from './utils/helpers';
 import Svg, { Polygon } from 'react-native-svg';
+import { useImperativeHandle } from 'react';
 
 const AnimatedPolygon = RNAnimated.createAnimatedComponent(Polygon);
+
+export interface ImageCropperRefOut {}
+
 interface ImageCropperProps {
   source: ImageURISource;
 }
+// { props: { source }, ref }: ImageCropperProps
 
-const ImageCropper = ({ source }: ImageCropperProps) => {
+const ImageCropper = (
+  { source }: ImageCropperProps,
+  ref: React.Ref<ImageCropperRefOut>
+) => {
   const panResponderTopLeft = React.useRef<PanResponderInstance | undefined>();
   const panResponderTopRight = React.useRef<PanResponderInstance | undefined>();
   const panResponderBottomLeft = React.useRef<
@@ -209,6 +217,10 @@ const ImageCropper = ({ source }: ImageCropperProps) => {
     );
   }, []);
 
+  const publicRef: ImageCropperRefOut = {};
+
+  useImperativeHandle(ref, () => publicRef);
+
   if (!init) {
     return null;
   }
@@ -247,7 +259,7 @@ const ImageCropper = ({ source }: ImageCropperProps) => {
   );
 };
 
-export default ImageCropper;
+export default React.forwardRef(ImageCropper);
 
 const IMAGE_CROPPER_POINT_CONTAINER_SIZE = 100;
 const IMAGE_CROPPER_POINT_SIZE = 20;
