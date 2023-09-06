@@ -105,7 +105,7 @@ public class DocumentCropperModule extends DocumentCropperSpec {
       Utils.matToBitmap(doc, bitmap);
 
       ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-      bitmap.compress(Bitmap.CompressFormat.JPEG, 70, byteArrayOutputStream);
+      bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
       byte[] byteArray = byteArrayOutputStream.toByteArray();
 
       // Generate a random file name
