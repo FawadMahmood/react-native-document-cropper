@@ -259,6 +259,7 @@ const ImageCropper = (
         };
 
         const newPhotoUrl = await cropPhoto(coordinates, imageUrl);
+        console.log('newPhotoUrl', newPhotoUrl);
         setImageUrl(newPhotoUrl);
         initiateCropper();
       });
