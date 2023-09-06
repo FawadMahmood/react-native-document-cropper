@@ -29,4 +29,8 @@ export function multiply(a: number, b: number): Promise<number> {
   return DocumentCropper.multiply(a, b);
 }
 
+export function resolveImagePath(image: string): Promise<string> {
+  return DocumentCropper.resolveImagePath(image);
+}
+
 export default ImageCropper;
