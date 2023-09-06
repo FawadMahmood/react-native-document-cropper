@@ -5,17 +5,20 @@ import {
   type PanResponderInstance,
 } from 'react-native';
 import { View, StyleSheet, Platform, Image, Dimensions } from 'react-native';
-import { resolveImagePath } from './';
+import { cropPhoto, resolveImagePath } from './';
 import {
   createAnimatedValueXYForCorner,
   createPanResponder,
+  viewCoordinatesToImageCoordinates,
 } from './utils/helpers';
 import Svg, { Polygon } from 'react-native-svg';
 import { useImperativeHandle } from 'react';
 
 const AnimatedPolygon = RNAnimated.createAnimatedComponent(Polygon);
 
-export interface ImageCropperRefOut {}
+export interface ImageCropperRefOut {
+  crop: () => Promise<string>;
+}
 
 interface ImageCropperProps {
   source: ImageURISource;
@@ -84,8 +87,10 @@ const ImageCropper = (
   };
 
   const initiateCropper = async () => {
-    const imagePath = await resolveImagePath(source.uri as string);
-    setImageUrl(imagePath);
+    let imagePath = await resolveImagePath(source.uri as string);
+    if (!imageUrl) setImageUrl(imagePath);
+    else imagePath = imageUrl;
+
     Image.getSize(`file://` + imagePath, (width, height) => {
       setWidth(width);
       setHeight(height);
@@ -217,7 +222,48 @@ const ImageCropper = (
     );
   }, []);
 
-  const publicRef: ImageCropperRefOut = {};
+  const publicRef: ImageCropperRefOut = {
+    crop: () => {
+      return new Promise(async () => {
+        const coordinates = {
+          topLeft: viewCoordinatesToImageCoordinates(
+            // @ts-ignore
+            topLeft.current,
+            _imgWidth,
+            _imgHeight,
+            viewHeight
+          ),
+          topRight: viewCoordinatesToImageCoordinates(
+            // @ts-ignore
+            topRight.current,
+            _imgWidth,
+            _imgHeight,
+            viewHeight
+          ),
+          bottomLeft: viewCoordinatesToImageCoordinates(
+            // @ts-ignore
+            bottomLeft.current,
+            _imgWidth,
+            _imgHeight,
+            viewHeight
+          ),
+          bottomRight: viewCoordinatesToImageCoordinates(
+            // @ts-ignore
+            bottomRight.current,
+            _imgWidth,
+            _imgHeight,
+            viewHeight
+          ),
+          height: _imgHeight,
+          width: _imgWidth,
+        };
+
+        const newPhotoUrl = await cropPhoto(coordinates, imageUrl);
+        setImageUrl(newPhotoUrl);
+        initiateCropper();
+      });
+    },
+  };
 
   useImperativeHandle(ref, () => publicRef);
 
@@ -245,7 +291,6 @@ const ImageCropper = (
         style={{ position: 'absolute', left: 0, top: 0 }}
       >
         <AnimatedPolygon
-          // ref={(ref) => (this.polygon = ref)}
           fill={'blue'}
           fillOpacity={0.3}
           stroke={CROPPER_COLOR}

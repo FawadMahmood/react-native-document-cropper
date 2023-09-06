@@ -33,4 +33,29 @@ export function resolveImagePath(image: string): Promise<string> {
   return DocumentCropper.resolveImagePath(image);
 }
 
+export interface IPoints {
+  topLeft: {
+    x: number;
+    y: number;
+  };
+  topRight: {
+    x: number;
+    y: number;
+  };
+  bottomLeft: {
+    x: number;
+    y: number;
+  };
+  bottomRight: {
+    x: number;
+    y: number;
+  };
+  height: number;
+  width: number;
+}
+
+export function cropPhoto(points: IPoints, image: string): Promise<string> {
+  return DocumentCropper.crop(points, image);
+}
+
 export default ImageCropper;
