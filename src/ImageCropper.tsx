@@ -1,225 +1,140 @@
 import * as React from 'react';
-import {
-  Animated as RNAnimated,
-  type ImageURISource,
-  type PanResponderInstance,
-} from 'react-native';
+import { type ImageURISource } from 'react-native';
 import { View, StyleSheet, Platform, Image, Dimensions } from 'react-native';
 import { cropPhoto, resolveImagePath } from './';
 import {
-  createAnimatedValueXYForCorner,
-  createPanResponder,
+  getInitialValues,
   viewCoordinatesToImageCoordinates,
 } from './utils/helpers';
-import Svg, { Polygon } from 'react-native-svg';
 import { useImperativeHandle } from 'react';
-
-const AnimatedPolygon = RNAnimated.createAnimatedComponent(Polygon);
+import Animated, {
+  useDerivedValue,
+  useSharedValue,
+} from 'react-native-reanimated';
+import {
+  Gesture,
+  GestureDetector,
+  GestureHandlerRootView,
+} from 'react-native-gesture-handler';
+import { Canvas, Path, Skia } from '@shopify/react-native-skia';
 
 export interface ImageCropperRefOut {
   crop: () => Promise<string>;
 }
-
 interface ImageCropperProps {
   source: ImageURISource;
 }
-// { props: { source }, ref }: ImageCropperProps
 
 const ImageCropper = (
   { source }: ImageCropperProps,
   ref: React.Ref<ImageCropperRefOut>
 ) => {
-  const panResponderTopLeft = React.useRef<PanResponderInstance | undefined>();
-  const panResponderTopRight = React.useRef<PanResponderInstance | undefined>();
-  const panResponderBottomLeft = React.useRef<
-    PanResponderInstance | undefined
-  >();
-  const panResponderBottomRight = React.useRef<
-    PanResponderInstance | undefined
-  >();
+  const TOP_LEFT = {
+    x: useSharedValue(0),
+    y: useSharedValue(0),
+  };
 
-  const [init, setInitalized] = React.useState<boolean>(false);
+  const TOP_RIGHT = {
+    x: useSharedValue(0),
+    y: useSharedValue(0),
+  };
+
+  const BOTTOM_LEFT = {
+    x: useSharedValue(0),
+    y: useSharedValue(0),
+  };
+
+  const BOTTOM_RIGHT = {
+    x: useSharedValue(0),
+    y: useSharedValue(0),
+  };
+
   const [imageUrl, setImageUrl] = React.useState<string>('');
   const [_imgHeight, setHeight] = React.useState(0);
   const [_imgWidth, setWidth] = React.useState(0);
   const [viewHeight, setViewHeight] = React.useState(0);
-
-  const topLeft = React.useRef<RNAnimated.ValueXY | undefined>();
-  const topRight = React.useRef<RNAnimated.ValueXY | undefined>();
-  const bottomLeft = React.useRef<RNAnimated.ValueXY | undefined>();
-  const bottomRight = React.useRef<RNAnimated.ValueXY | undefined>();
-  const zoomOnPoint = React.useRef<RNAnimated.ValueXY>(
-    new RNAnimated.ValueXY()
-  );
-
-  const [_overlayPositions, setOverlayPosition] = React.useState<string>('');
 
   React.useEffect(() => {
     initiateCropper();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewHeight]);
 
-  const updateOverlayString = () => {
-    // @ts-ignore
-    let topLeftx = topLeft.current?.x._value + topLeft.current?.x._offset;
-    // @ts-ignore
-    let topLefty = topLeft.current?.y._value + topLeft.current?.y._offset;
-    // @ts-ignore
-    let topRightx = topRight.current?.x._value + topRight.current?.x._offset;
-    // @ts-ignore
-    let topRighty = topRight.current?.y._value + topRight.current?.y._offset;
-
-    let bottomRightx = // @ts-ignore
-      bottomRight.current?.x._value + bottomRight.current?.x._offset;
-    // @ts-ignore
-    let bottomRighty = // @ts-ignore
-      bottomRight.current?.y._value + bottomRight.current?.y._offset;
-    // @ts-ignore
-    let bottomLeftx = // @ts-ignore
-      bottomLeft.current?.x._value + bottomLeft.current?.x._offset;
-    // @ts-ignore
-    let bottomLefty = // @ts-ignore
-      bottomLeft.current?.y._value + bottomLeft.current?.y._offset;
-
-    setOverlayPosition(
-      `${topLeftx},${topLefty} ${topRightx},${topRighty} ${bottomRightx},${bottomRighty} ${bottomLeftx},${bottomLefty}`
-    );
-  };
-
   const initiateCropper = async () => {
     let imagePath = await resolveImagePath(source.uri as string);
     if (!imageUrl) setImageUrl(imagePath);
     else imagePath = imageUrl;
-
     Image.getSize(`file://` + imagePath, (width, height) => {
       setWidth(width);
       setHeight(height);
       setViewHeight(Dimensions.get('window').width * (height / width));
 
-      const topL = createAnimatedValueXYForCorner(
+      // setting top left initial values
+      const topLeftValues = getInitialValues(
         { x: 0, y: 0 },
         width,
         height,
         viewHeight
       );
-      const topR = createAnimatedValueXYForCorner(
+      const topRightValues = getInitialValues(
         { x: width, y: 0 },
         width,
         height,
         viewHeight
       );
-      const bottomL = createAnimatedValueXYForCorner(
+      const bottomLeftValues = getInitialValues(
         { x: 0, y: height },
         width,
         height,
         viewHeight
       );
-      const bottomR = createAnimatedValueXYForCorner(
+      const bottomRightValues = getInitialValues(
         { x: width, y: height },
         width,
         height,
         viewHeight
       );
-
-      const zoomOnPointVal = createAnimatedValueXYForCorner(
-        { x: 0, y: 0 },
-        width,
-        height,
-        viewHeight
-      );
-
-      topLeft.current = topL;
-      topRight.current = topR;
-      bottomLeft.current = bottomL;
-      bottomRight.current = bottomR;
-      zoomOnPoint.current = zoomOnPointVal;
-
-      panResponderTopLeft.current = createPanResponder(
-        topL,
-        updateOverlayString,
-        zoomOnPointVal
-      );
-
-      panResponderTopRight.current = createPanResponder(
-        topR,
-        updateOverlayString,
-        zoomOnPointVal
-      );
-
-      panResponderBottomLeft.current = createPanResponder(
-        bottomL,
-        updateOverlayString,
-        zoomOnPointVal
-      );
-
-      panResponderBottomRight.current = createPanResponder(
-        bottomR,
-        updateOverlayString,
-        zoomOnPointVal
-      );
-      // Access values directly
-      const topLeftX = topL.x;
-      const topLeftY = topL.y;
-      const topRightX = topR.x;
-      const topRightY = topR.y;
-      const bottomLeftX = bottomL.x;
-      const bottomLeftY = bottomL.y;
-      const bottomRightX = bottomR.x;
-      const bottomRightY = bottomR.y;
-
-      setOverlayPosition(
-        // @ts-ignore
-        `${topLeftX._value},${topLeftY._value} ${topRightX._value},${topRightY._value} ${bottomRightX._value},${bottomRightY._value} ${bottomLeftX._value},${bottomLeftY._value}`
-      );
-
-      setInitalized(true);
+      TOP_LEFT.x.value = topLeftValues.x;
+      TOP_LEFT.y.value = topLeftValues.y;
+      TOP_RIGHT.x.value = topRightValues.x;
+      TOP_RIGHT.y.value = topRightValues.y;
+      BOTTOM_LEFT.x.value = bottomLeftValues.x;
+      BOTTOM_LEFT.y.value = bottomLeftValues.y;
+      BOTTOM_RIGHT.x.value = bottomRightValues.x;
+      BOTTOM_RIGHT.y.value = bottomRightValues.y;
+      // setting top left initial values
     });
   };
 
-  const renderPoints = React.useCallback(() => {
-    return (
-      <>
-        <RNAnimated.View
-          {...panResponderTopLeft.current?.panHandlers}
-          style={[
-            topLeft.current?.getLayout(),
-            styles.imageCropperPointContainer,
-          ]}
-        >
-          <View style={styles.imageCropperPoint} />
-        </RNAnimated.View>
+  const createAnimatedPanGesture = (node: any) => {
+    return Gesture.Pan().onChange((event) => {
+      node.x.value += event.changeX;
+      node.y.value += event.changeY;
+    });
+  };
 
-        <RNAnimated.View
-          {...panResponderTopRight.current?.panHandlers}
-          style={[
-            topRight.current?.getLayout(),
-            styles.imageCropperPointContainer,
-          ]}
+  const renderPoints = React.useCallback((nodes: any) => {
+    return nodes.map((node: any, index: number) => {
+      return (
+        <GestureDetector
+          key={index + 'pointer'}
+          gesture={createAnimatedPanGesture(node)}
         >
-          <View style={styles.imageCropperPoint} />
-        </RNAnimated.View>
-
-        <RNAnimated.View
-          {...panResponderBottomLeft.current?.panHandlers}
-          style={[
-            bottomLeft.current?.getLayout(),
-            styles.imageCropperPointContainer,
-          ]}
-        >
-          <View style={styles.imageCropperPoint} />
-        </RNAnimated.View>
-
-        <RNAnimated.View
-          {...panResponderBottomRight.current?.panHandlers}
-          style={[
-            bottomRight.current?.getLayout(),
-            styles.imageCropperPointContainer,
-          ]}
-        >
-          <View style={styles.imageCropperPoint} />
-        </RNAnimated.View>
-      </>
-    );
+          <Animated.View
+            style={[
+              {
+                transform: [
+                  { translateX: node.x as any },
+                  { translateY: node.y as any },
+                ],
+              },
+              styles.imageCropperPointContainer,
+            ]}
+          >
+            <View style={styles.imageCropperPoint} />
+          </Animated.View>
+        </GestureDetector>
+      );
+    });
   }, []);
 
   const publicRef: ImageCropperRefOut = {
@@ -228,28 +143,28 @@ const ImageCropper = (
         const coordinates = {
           topLeft: viewCoordinatesToImageCoordinates(
             // @ts-ignore
-            topLeft.current,
+            { x: TOP_LEFT.x.value, y: TOP_LEFT.y.value },
             _imgWidth,
             _imgHeight,
             viewHeight
           ),
           topRight: viewCoordinatesToImageCoordinates(
             // @ts-ignore
-            topRight.current,
+            { x: TOP_RIGHT.x.value, y: TOP_RIGHT.y.value },
             _imgWidth,
             _imgHeight,
             viewHeight
           ),
           bottomLeft: viewCoordinatesToImageCoordinates(
             // @ts-ignore
-            bottomLeft.current,
+            { x: BOTTOM_LEFT.x.value, y: BOTTOM_LEFT.y.value },
             _imgWidth,
             _imgHeight,
             viewHeight
           ),
           bottomRight: viewCoordinatesToImageCoordinates(
             // @ts-ignore
-            bottomRight.current,
+            { x: BOTTOM_RIGHT.x.value, y: BOTTOM_RIGHT.y.value },
             _imgWidth,
             _imgHeight,
             viewHeight
@@ -259,7 +174,6 @@ const ImageCropper = (
         };
 
         const newPhotoUrl = await cropPhoto(coordinates, imageUrl);
-        console.log('newPhotoUrl', newPhotoUrl);
         setImageUrl(newPhotoUrl);
         initiateCropper();
       });
@@ -268,40 +182,45 @@ const ImageCropper = (
 
   useImperativeHandle(ref, () => publicRef);
 
-  if (!init) {
-    return null;
-  }
-
   const heightStyle = {
     height: viewHeight,
   };
 
+  const color = 'rgba(97, 218, 251, .5)';
+
+  const path = useDerivedValue(() => {
+    const p = Skia.Path.Make();
+    p.moveTo(TOP_LEFT.x.value, TOP_LEFT.y.value);
+    p.lineTo(BOTTOM_LEFT.x.value, BOTTOM_LEFT.y.value);
+    p.lineTo(BOTTOM_RIGHT.x.value, BOTTOM_RIGHT.y.value);
+    p.lineTo(TOP_RIGHT.x.value, TOP_RIGHT.y.value);
+    p.lineTo(TOP_LEFT.x.value, TOP_LEFT.y.value);
+    p.close();
+
+    return p;
+  });
+
   return (
-    <View style={styles.container}>
-      <Image
-        source={{ uri: 'file://' + imageUrl }}
-        resizeMode={Platform.OS === 'ios' ? 'stretch' : 'stretch'}
-        style={{ ...styles.img, ...heightStyle }}
-        fadeDuration={0}
-      />
+    <GestureHandlerRootView style={styles.containerT}>
+      <View style={styles.container}>
+        {imageUrl && (
+          <Image
+            source={{ uri: 'file://' + imageUrl }}
+            resizeMode={Platform.OS === 'ios' ? 'stretch' : 'stretch'}
+            style={{ ...styles.img, ...heightStyle }}
+            fadeDuration={0}
+          />
+        )}
 
-      <Svg
-        height={viewHeight}
-        width={Dimensions.get('window').width}
-        // eslint-disable-next-line react-native/no-inline-styles
-        style={{ position: 'absolute', left: 0, top: 0 }}
-      >
-        <AnimatedPolygon
-          fill={'blue'}
-          fillOpacity={0.3}
-          stroke={CROPPER_COLOR}
-          points={_overlayPositions}
-          strokeWidth={3}
-        />
-      </Svg>
+        {imageUrl && (
+          <Canvas style={dynamicStyles({ viewHeight }).canvas}>
+            <Path path={path} color={color} />
+          </Canvas>
+        )}
 
-      {renderPoints()}
-    </View>
+        {renderPoints([TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT])}
+      </View>
+    </GestureHandlerRootView>
   );
 };
 
@@ -317,7 +236,17 @@ const ZOOM_CONTAINER_BORDER_WIDTH = 2;
 const ZOOM_CURSOR_SIZE = 10;
 const ZOOM_CURSOR_BORDER_SIZE = 1;
 
+const dynamicStyles = ({ viewHeight }: any) => {
+  return StyleSheet.create({
+    canvas: { height: viewHeight, position: 'absolute', width: '100%' },
+  });
+};
+
 const styles = StyleSheet.create({
+  containerT: {
+    flex: 1,
+    justifyContent: 'center',
+  },
   container: {
     width: '100%',
     transform: [
@@ -363,7 +292,6 @@ const styles = StyleSheet.create({
     marginTop: -IMAGE_CROPPER_POINT_CONTAINER_SIZE / 2,
     marginLeft: -IMAGE_CROPPER_POINT_CONTAINER_SIZE / 2,
     zIndex: 2,
-    // elevation: 2,
   },
   imageCropperPoint: {
     width: IMAGE_CROPPER_POINT_SIZE,
