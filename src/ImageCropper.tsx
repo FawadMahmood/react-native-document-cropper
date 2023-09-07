@@ -8,8 +8,10 @@ import {
 } from './utils/helpers';
 import { useImperativeHandle } from 'react';
 import Animated, {
+  useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 import {
   Gesture,
@@ -18,6 +20,7 @@ import {
 } from 'react-native-gesture-handler';
 import { Canvas, Path, Skia } from '@shopify/react-native-skia';
 
+const WINDOW_WIDTH = Dimensions.get('window').width;
 export interface ImageCropperRefOut {
   crop: () => Promise<string>;
 }
@@ -48,6 +51,13 @@ const ImageCropper = (
     x: useSharedValue(0),
     y: useSharedValue(0),
   };
+
+  const ZOOM_CONTAINER = {
+    x: useSharedValue(0),
+    y: useSharedValue(0),
+  };
+
+  const ZOOM_SIGN_OPACITY_ANIM = useSharedValue(0);
 
   const [imageUrl, setImageUrl] = React.useState<string>('');
   const [_imgHeight, setHeight] = React.useState(0);
@@ -106,10 +116,20 @@ const ImageCropper = (
   };
 
   const createAnimatedPanGesture = (node: any) => {
-    return Gesture.Pan().onChange((event) => {
-      node.x.value += event.changeX;
-      node.y.value += event.changeY;
-    });
+    return Gesture.Pan()
+      .onChange((event) => {
+        node.x.value += event.changeX;
+        node.y.value += event.changeY;
+
+        ZOOM_CONTAINER.x.value = node.x.value;
+        ZOOM_CONTAINER.y.value = node.y.value;
+      })
+      .onBegin(() => {
+        ZOOM_SIGN_OPACITY_ANIM.value = withTiming(1);
+      })
+      .onFinalize(() => {
+        ZOOM_SIGN_OPACITY_ANIM.value = withTiming(0);
+      });
   };
 
   const renderPoints = React.useCallback((nodes: any) => {
@@ -135,6 +155,7 @@ const ImageCropper = (
         </GestureDetector>
       );
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const publicRef: ImageCropperRefOut = {
@@ -200,25 +221,76 @@ const ImageCropper = (
     return p;
   });
 
+  const animatedZoomImage = useAnimatedStyle(() => {
+    const adjustment = ZOOM_CONTAINER_SIZE / 2;
+
+    return {
+      marginLeft:
+        -ZOOM_CONTAINER.x.value + adjustment - ZOOM_CURSOR_BORDER_SIZE,
+      marginTop: -ZOOM_CONTAINER.y.value + adjustment - ZOOM_CURSOR_SIZE / 2,
+    };
+  });
+
+  const animatedZoomImageContainer = useAnimatedStyle(() => {
+    const adjustment = ZOOM_CONTAINER_SIZE / 2;
+    const leftVaue = ZOOM_CONTAINER.x.value - adjustment - 50;
+    return {
+      left: leftVaue < 0 ? 0 : leftVaue,
+      top: ZOOM_CONTAINER.y.value + 4,
+      opacity: ZOOM_SIGN_OPACITY_ANIM.value,
+    };
+  });
+
   return (
     <GestureHandlerRootView style={styles.containerT}>
-      <View style={styles.container}>
-        {imageUrl && (
-          <Image
-            source={{ uri: 'file://' + imageUrl }}
-            resizeMode={Platform.OS === 'ios' ? 'stretch' : 'stretch'}
-            style={{ ...styles.img, ...heightStyle }}
-            fadeDuration={0}
-          />
-        )}
+      <View style={styles.containerT}>
+        <View style={styles.container}>
+          {imageUrl && (
+            <Image
+              source={{ uri: 'file://' + imageUrl }}
+              resizeMode={Platform.OS === 'ios' ? 'stretch' : 'stretch'}
+              style={{ ...styles.img, ...heightStyle }}
+              fadeDuration={0}
+            />
+          )}
 
-        {imageUrl && (
-          <Canvas style={dynamicStyles({ viewHeight }).canvas}>
-            <Path path={path} color={color} />
-          </Canvas>
-        )}
+          {imageUrl && (
+            <Canvas style={dynamicStyles({ viewHeight }).canvas}>
+              <Path path={path} color={color} />
+            </Canvas>
+          )}
 
-        {renderPoints([TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT])}
+          {renderPoints([TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT])}
+        </View>
+        {imageUrl && (
+          <Animated.View
+            style={[
+              styles.zoomContainer,
+              animatedZoomImageContainer,
+              // {
+              //   top: ZOOM_CONTAINER.y.value - ZOOM_CONTAINER_SIZE - 50,
+              //   left: ZOOM_CONTAINER.x.value - ZOOM_CONTAINER_SIZE / 2,
+              // },
+            ]}
+          >
+            <Animated.Image
+              source={{ uri: imageUrl }}
+              resizeMode={Platform.OS === 'ios' ? 'stretch' : 'cover'}
+              style={[
+                {
+                  width: WINDOW_WIDTH,
+                  height: viewHeight,
+                },
+                animatedZoomImage,
+              ]}
+            />
+            {/* Cursor */}
+            <View style={styles.zoomCursor}>
+              <View style={styles.zoomCursorHorizontal} />
+              <View style={styles.zoomCursorVertical} />
+            </View>
+          </Animated.View>
+        )}
       </View>
     </GestureHandlerRootView>
   );
@@ -229,12 +301,12 @@ export default React.forwardRef(ImageCropper);
 const IMAGE_CROPPER_POINT_CONTAINER_SIZE = 100;
 const IMAGE_CROPPER_POINT_SIZE = 20;
 
-const CROPPER_COLOR = 'rgba(0,255,0, 0.8)';
+const CROPPER_COLOR = 'rgba(255,90,90, 0.8)';
 
 const ZOOM_CONTAINER_SIZE = 120;
 const ZOOM_CONTAINER_BORDER_WIDTH = 2;
-const ZOOM_CURSOR_SIZE = 10;
-const ZOOM_CURSOR_BORDER_SIZE = 1;
+const ZOOM_CURSOR_SIZE = 20;
+const ZOOM_CURSOR_BORDER_SIZE = 2;
 
 const dynamicStyles = ({ viewHeight }: any) => {
   return StyleSheet.create({
@@ -303,8 +375,8 @@ const styles = StyleSheet.create({
   },
   zoomContainer: {
     position: 'absolute',
-    top: -100,
-    left: 0,
+    top: 50,
+    left: 10,
     width: ZOOM_CONTAINER_SIZE,
     height: ZOOM_CONTAINER_SIZE,
     borderRadius: ZOOM_CONTAINER_SIZE / 2,
