@@ -34,6 +34,7 @@ const ImageCropper = (
   { source, cropperSignColor, pointSize }: ImageCropperProps,
   ref: React.Ref<ImageCropperRefOut>
 ) => {
+  const [init, setInit] = React.useState(false);
   const TOP_LEFT = {
     x: useSharedValue(0),
     y: useSharedValue(0),
@@ -114,6 +115,8 @@ const ImageCropper = (
       BOTTOM_RIGHT.x.value = bottomRightValues.x;
       BOTTOM_RIGHT.y.value = bottomRightValues.y;
       // setting top left initial values
+
+      setInit(true);
     });
   };
 
@@ -242,6 +245,10 @@ const ImageCropper = (
       opacity: ZOOM_SIGN_OPACITY_ANIM.value,
     };
   });
+
+  if (!init) {
+    return null;
+  }
 
   return (
     <GestureHandlerRootView style={styles.containerT}>
