@@ -26,10 +26,12 @@ export interface ImageCropperRefOut {
 }
 interface ImageCropperProps {
   source: ImageURISource;
+  cropperSignColor?: string;
+  pointSize?: number;
 }
 
 const ImageCropper = (
-  { source }: ImageCropperProps,
+  { source, cropperSignColor, pointSize }: ImageCropperProps,
   ref: React.Ref<ImageCropperRefOut>
 ) => {
   const TOP_LEFT = {
@@ -264,14 +266,7 @@ const ImageCropper = (
         </View>
         {imageUrl && (
           <Animated.View
-            style={[
-              styles.zoomContainer,
-              animatedZoomImageContainer,
-              // {
-              //   top: ZOOM_CONTAINER.y.value - ZOOM_CONTAINER_SIZE - 50,
-              //   left: ZOOM_CONTAINER.x.value - ZOOM_CONTAINER_SIZE / 2,
-              // },
-            ]}
+            style={[styles.zoomContainer, animatedZoomImageContainer]}
           >
             <Animated.Image
               source={{ uri: imageUrl }}
@@ -285,9 +280,19 @@ const ImageCropper = (
               ]}
             />
             {/* Cursor */}
-            <View style={styles.zoomCursor}>
-              <View style={styles.zoomCursorHorizontal} />
-              <View style={styles.zoomCursorVertical} />
+            <View style={styles.zoomSign}>
+              <View
+                style={
+                  dynamicStyles({ cropperSignColor, pointSize })
+                    .zoomSignHorizontal
+                }
+              />
+              <View
+                style={
+                  dynamicStyles({ cropperSignColor, pointSize })
+                    .zoomSignVertical
+                }
+              />
             </View>
           </Animated.View>
         )}
@@ -308,9 +313,20 @@ const ZOOM_CONTAINER_BORDER_WIDTH = 2;
 const ZOOM_CURSOR_SIZE = 20;
 const ZOOM_CURSOR_BORDER_SIZE = 2;
 
-const dynamicStyles = ({ viewHeight }: any) => {
+const dynamicStyles = ({ viewHeight, cropperSignColor, pointSize }: any) => {
   return StyleSheet.create({
     canvas: { height: viewHeight, position: 'absolute', width: '100%' },
+    zoomSignHorizontal: {
+      width: pointSize || ZOOM_CURSOR_SIZE,
+      height: ZOOM_CURSOR_BORDER_SIZE,
+      backgroundColor: cropperSignColor || CROPPER_COLOR,
+    },
+    zoomSignVertical: {
+      width: ZOOM_CURSOR_BORDER_SIZE,
+      height: pointSize || ZOOM_CURSOR_SIZE,
+      marginTop: -(pointSize || ZOOM_CURSOR_SIZE) / 2,
+      backgroundColor: cropperSignColor || CROPPER_COLOR,
+    },
   });
 };
 
@@ -385,22 +401,11 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: 'black',
   },
-  zoomCursor: {
+  zoomSign: {
     position: 'absolute',
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
     height: '100%',
-  },
-  zoomCursorHorizontal: {
-    width: ZOOM_CURSOR_SIZE,
-    height: ZOOM_CURSOR_BORDER_SIZE,
-    backgroundColor: CROPPER_COLOR,
-  },
-  zoomCursorVertical: {
-    width: ZOOM_CURSOR_BORDER_SIZE,
-    height: ZOOM_CURSOR_SIZE,
-    marginTop: -ZOOM_CURSOR_SIZE / 2,
-    backgroundColor: CROPPER_COLOR,
   },
 });
