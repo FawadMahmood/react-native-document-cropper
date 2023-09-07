@@ -241,7 +241,7 @@ const ImageCropper = (
     const leftVaue = ZOOM_CONTAINER.x.value - adjustment - 50;
     return {
       left: leftVaue < 0 ? 0 : leftVaue,
-      top: ZOOM_CONTAINER.y.value + 4,
+      top: ZOOM_CONTAINER.y.value - adjustment - 50,
       opacity: ZOOM_SIGN_OPACITY_ANIM.value,
     };
   });
