@@ -224,7 +224,16 @@ const ImageCropper = (
     p.close();
 
     return p;
-  });
+  }, [
+    TOP_LEFT.x.value,
+    TOP_LEFT.y.value,
+    BOTTOM_LEFT.x.value,
+    BOTTOM_LEFT.y.value,
+    BOTTOM_RIGHT.x.value,
+    BOTTOM_RIGHT.y.value,
+    TOP_RIGHT.x.value,
+    TOP_RIGHT.y.value,
+  ]);
 
   const animatedZoomImage = useAnimatedStyle(() => {
     const adjustment = ZOOM_CONTAINER_SIZE / 2;
