@@ -8,8 +8,8 @@ import {
 } from './utils/helpers';
 import { useImperativeHandle } from 'react';
 import Animated, {
+  useAnimatedProps,
   useAnimatedStyle,
-  useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
@@ -18,7 +18,9 @@ import {
   GestureDetector,
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
-import { Canvas, Path, Skia } from '@shopify/react-native-skia';
+
+import { Svg, Path } from 'react-native-svg';
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 export interface ImageCropperRefOut {
@@ -28,10 +30,11 @@ interface ImageCropperProps {
   source: ImageURISource;
   cropperSignColor?: string;
   pointSize?: number;
+  fillColor?: string;
 }
 
 const ImageCropper = (
-  { source, cropperSignColor, pointSize }: ImageCropperProps,
+  { source, cropperSignColor, pointSize, fillColor }: ImageCropperProps,
   ref: React.Ref<ImageCropperRefOut>
 ) => {
   const [init, setInit] = React.useState(false);
@@ -214,27 +217,6 @@ const ImageCropper = (
 
   const color = 'rgba(97, 218, 251, .5)';
 
-  const path = useDerivedValue(() => {
-    const p = Skia.Path.Make();
-    p.moveTo(TOP_LEFT.x.value, TOP_LEFT.y.value);
-    p.lineTo(BOTTOM_LEFT.x.value, BOTTOM_LEFT.y.value);
-    p.lineTo(BOTTOM_RIGHT.x.value, BOTTOM_RIGHT.y.value);
-    p.lineTo(TOP_RIGHT.x.value, TOP_RIGHT.y.value);
-    p.lineTo(TOP_LEFT.x.value, TOP_LEFT.y.value);
-    p.close();
-
-    return p;
-  }, [
-    TOP_LEFT.x.value,
-    TOP_LEFT.y.value,
-    BOTTOM_LEFT.x.value,
-    BOTTOM_LEFT.y.value,
-    BOTTOM_RIGHT.x.value,
-    BOTTOM_RIGHT.y.value,
-    TOP_RIGHT.x.value,
-    TOP_RIGHT.y.value,
-  ]);
-
   const animatedZoomImage = useAnimatedStyle(() => {
     const adjustment = ZOOM_CONTAINER_SIZE / 2;
 
@@ -242,6 +224,20 @@ const ImageCropper = (
       marginLeft:
         -ZOOM_CONTAINER.x.value + adjustment - ZOOM_CURSOR_BORDER_SIZE,
       marginTop: -ZOOM_CONTAINER.y.value + adjustment - ZOOM_CURSOR_SIZE / 2,
+    };
+  });
+
+  const animatedProps = useAnimatedProps(() => {
+    // draw a circle
+    const path = `
+      M ${TOP_LEFT.x.value}, ${TOP_LEFT.y.value}
+      L${BOTTOM_LEFT.x.value}, ${BOTTOM_LEFT.y.value}
+      L${BOTTOM_RIGHT.x.value}, ${BOTTOM_RIGHT.y.value}
+      L${TOP_RIGHT.x.value}, ${TOP_RIGHT.y.value}
+      L${TOP_LEFT.x.value}, ${TOP_LEFT.y.value}
+    `;
+    return {
+      d: path,
     };
   });
 
@@ -271,11 +267,13 @@ const ImageCropper = (
               fadeDuration={0}
             />
           )}
-
           {imageUrl && (
-            <Canvas style={dynamicStyles({ viewHeight }).canvas}>
-              <Path path={path} color={color} />
-            </Canvas>
+            <Svg style={dynamicStyles({ viewHeight }).canvas}>
+              <AnimatedPath
+                fill={fillColor || color}
+                animatedProps={animatedProps}
+              />
+            </Svg>
           )}
 
           {renderPoints([TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT])}

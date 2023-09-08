@@ -88,8 +88,7 @@
     "react-native": "*",
     "react-native-gesture-handler": "*",
     "react-native-reanimated": "*",
-    "react-native-svg": "*",
-    "@shopify/react-native-skia": "*"
+    "react-native-svg": "*"
   },
   "engines": {
     "node": ">= 16.0.0"
