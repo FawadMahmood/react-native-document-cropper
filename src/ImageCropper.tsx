@@ -33,6 +33,7 @@ interface ImageCropperProps {
   fillColor?: string;
   handleBgColor?: string;
   handleBorderColor?: string;
+  noPreview?: boolean;
 }
 
 const ImageCropper = (
@@ -43,6 +44,7 @@ const ImageCropper = (
     fillColor,
     handleBgColor,
     handleBorderColor,
+    noPreview,
   }: ImageCropperProps,
   ref: React.Ref<ImageCropperRefOut>
 ) => {
@@ -246,7 +248,7 @@ const ImageCropper = (
         };
 
         const newPhotoUrl = await cropPhoto(coordinates, imageUrl);
-        setImageUrl(newPhotoUrl);
+        if (!noPreview) setImageUrl(newPhotoUrl);
         resolve(newPhotoUrl);
         initiateCropper();
       });
