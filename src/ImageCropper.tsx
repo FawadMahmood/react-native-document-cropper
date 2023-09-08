@@ -31,10 +31,19 @@ interface ImageCropperProps {
   cropperSignColor?: string;
   pointSize?: number;
   fillColor?: string;
+  handleBgColor?: string;
+  handleBorderColor?: string;
 }
 
 const ImageCropper = (
-  { source, cropperSignColor, pointSize, fillColor }: ImageCropperProps,
+  {
+    source,
+    cropperSignColor,
+    pointSize,
+    fillColor,
+    handleBgColor,
+    handleBorderColor,
+  }: ImageCropperProps,
   ref: React.Ref<ImageCropperRefOut>
 ) => {
   const [init, setInit] = React.useState(false);
@@ -187,7 +196,12 @@ const ImageCropper = (
               styles.imageCropperPointContainer,
             ]}
           >
-            <View style={styles.imageCropperPoint} />
+            <View
+              style={
+                dynamicStyles({ handleBgColor, handleBorderColor })
+                  .imageCropperPoint
+              }
+            />
           </Animated.View>
         </GestureDetector>
       );
@@ -374,7 +388,13 @@ const ZOOM_CONTAINER_BORDER_WIDTH = 2;
 const ZOOM_CURSOR_SIZE = 20;
 const ZOOM_CURSOR_BORDER_SIZE = 2;
 
-const dynamicStyles = ({ viewHeight, cropperSignColor, pointSize }: any) => {
+const dynamicStyles = ({
+  viewHeight,
+  cropperSignColor,
+  pointSize,
+  handleBgColor,
+  handleBorderColor,
+}: any) => {
   return StyleSheet.create({
     canvas: { height: viewHeight, position: 'absolute', width: '100%' },
     zoomSignHorizontal: {
@@ -387,6 +407,14 @@ const dynamicStyles = ({ viewHeight, cropperSignColor, pointSize }: any) => {
       height: pointSize || ZOOM_CURSOR_SIZE,
       marginTop: -(pointSize || ZOOM_CURSOR_SIZE) / 2,
       backgroundColor: cropperSignColor || CROPPER_COLOR,
+    },
+    imageCropperPoint: {
+      width: IMAGE_CROPPER_POINT_SIZE,
+      height: IMAGE_CROPPER_POINT_SIZE,
+      borderRadius: IMAGE_CROPPER_POINT_SIZE / 2,
+      backgroundColor: handleBgColor || 'rgba(0, 255, 255, 0.5)',
+      borderWidth: 1,
+      borderColor: handleBorderColor || CROPPER_COLOR,
     },
   });
 };
@@ -441,14 +469,6 @@ const styles = StyleSheet.create({
     marginTop: -IMAGE_CROPPER_POINT_CONTAINER_SIZE / 2,
     marginLeft: -IMAGE_CROPPER_POINT_CONTAINER_SIZE / 2,
     zIndex: 2,
-  },
-  imageCropperPoint: {
-    width: IMAGE_CROPPER_POINT_SIZE,
-    height: IMAGE_CROPPER_POINT_SIZE,
-    borderRadius: IMAGE_CROPPER_POINT_SIZE / 2,
-    backgroundColor: 'rgba(0, 255, 255, 0.5)',
-    borderWidth: 1,
-    borderColor: CROPPER_COLOR,
   },
   zoomContainer: {
     position: 'absolute',
