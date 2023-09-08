@@ -106,14 +106,14 @@ const ImageCropper = (
         height,
         viewHeight
       );
-      TOP_LEFT.x.value = topLeftValues.x;
-      TOP_LEFT.y.value = topLeftValues.y;
-      TOP_RIGHT.x.value = topRightValues.x;
-      TOP_RIGHT.y.value = topRightValues.y;
-      BOTTOM_LEFT.x.value = bottomLeftValues.x;
-      BOTTOM_LEFT.y.value = bottomLeftValues.y;
-      BOTTOM_RIGHT.x.value = bottomRightValues.x;
-      BOTTOM_RIGHT.y.value = bottomRightValues.y;
+      TOP_LEFT.x.value = withTiming(topLeftValues.x);
+      TOP_LEFT.y.value = withTiming(topLeftValues.y);
+      TOP_RIGHT.x.value = withTiming(topRightValues.x);
+      TOP_RIGHT.y.value = withTiming(topRightValues.y);
+      BOTTOM_LEFT.x.value = withTiming(bottomLeftValues.x);
+      BOTTOM_LEFT.y.value = withTiming(bottomLeftValues.y);
+      BOTTOM_RIGHT.x.value = withTiming(bottomRightValues.x);
+      BOTTOM_RIGHT.y.value = withTiming(bottomRightValues.y);
       // setting top left initial values
 
       setInit(true);
@@ -250,7 +250,7 @@ const ImageCropper = (
     const leftVaue = ZOOM_CONTAINER.x.value - adjustment - 50;
     return {
       left: leftVaue < 0 ? 0 : leftVaue,
-      top: ZOOM_CONTAINER.y.value - adjustment - 50,
+      top: ZOOM_CONTAINER.y.value - 50,
       opacity: ZOOM_SIGN_OPACITY_ANIM.value,
     };
   });
@@ -285,7 +285,7 @@ const ImageCropper = (
             style={[styles.zoomContainer, animatedZoomImageContainer]}
           >
             <Animated.Image
-              source={{ uri: imageUrl }}
+              source={{ uri: 'file://' + imageUrl }}
               resizeMode={Platform.OS === 'ios' ? 'stretch' : 'cover'}
               style={[
                 {
