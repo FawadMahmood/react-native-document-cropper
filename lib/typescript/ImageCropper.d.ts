@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { type ImageURISource } from 'react-native';
+import type { ImageURISource } from 'react-native';
 export interface ImageCropperRefOut {
     crop: () => Promise<string>;
 }
