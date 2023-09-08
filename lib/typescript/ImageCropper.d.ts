@@ -10,6 +10,7 @@ interface ImageCropperProps {
     fillColor?: string;
     handleBgColor?: string;
     handleBorderColor?: string;
+    noPreview?: boolean;
 }
 declare const _default: React.ForwardRefExoticComponent<ImageCropperProps & React.RefAttributes<ImageCropperRefOut>>;
 export default _default;
