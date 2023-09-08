@@ -301,7 +301,7 @@ const ImageCropper = (
   if (!init) {
     return null;
   }
-  //
+
   return (
     <GestureHandlerRootView style={styles.containerT} onLayout={onLayout}>
       <View style={styles.containerT}>
@@ -364,8 +364,8 @@ const ImageCropper = (
 
 export default React.forwardRef(ImageCropper);
 
-const IMAGE_CROPPER_POINT_CONTAINER_SIZE = 100;
-const IMAGE_CROPPER_POINT_SIZE = 20;
+const IMAGE_CROPPER_POINT_CONTAINER_SIZE = 130;
+const IMAGE_CROPPER_POINT_SIZE = 30;
 
 const CROPPER_COLOR = 'rgba(255,90,90, 0.8)';
 
