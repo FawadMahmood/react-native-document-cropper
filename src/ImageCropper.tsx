@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { type ImageURISource } from 'react-native';
+import { LayoutChangeEvent, type ImageURISource } from 'react-native';
 import { View, StyleSheet, Platform, Image, Dimensions } from 'react-native';
 import { cropPhoto, resolveImagePath } from './';
 import {
@@ -38,6 +38,13 @@ const ImageCropper = (
   ref: React.Ref<ImageCropperRefOut>
 ) => {
   const [init, setInit] = React.useState(false);
+  const viewScaleX = useSharedValue(0.9);
+  const viewScaleY = useSharedValue(0.95);
+  const maxWidth = useSharedValue(0);
+  const maxHeight = useSharedValue(0);
+  const minWidth = useSharedValue(0);
+  const minHeight = useSharedValue(0);
+
   const TOP_LEFT = {
     x: useSharedValue(0),
     y: useSharedValue(0),
@@ -109,6 +116,12 @@ const ImageCropper = (
         height,
         viewHeight
       );
+
+      minWidth.value = topLeftValues.x;
+      maxWidth.value = bottomRightValues.x;
+      minHeight.value = topRightValues.y;
+      maxHeight.value = bottomRightValues.y;
+
       TOP_LEFT.x.value = withTiming(topLeftValues.x);
       TOP_LEFT.y.value = withTiming(topLeftValues.y);
       TOP_RIGHT.x.value = withTiming(topRightValues.x);
@@ -128,6 +141,22 @@ const ImageCropper = (
       .onChange((event) => {
         node.x.value += event.changeX;
         node.y.value += event.changeY;
+
+        if (node.x.value > maxWidth.value) {
+          node.x.value = maxWidth.value;
+        }
+
+        if (node.x.value < minWidth.value) {
+          node.x.value = minWidth.value;
+        }
+
+        if (node.y.value > maxHeight.value) {
+          node.y.value = maxHeight.value;
+        }
+
+        if (node.y.value < minHeight.value) {
+          node.y.value = minHeight.value;
+        }
 
         ZOOM_CONTAINER.x.value = node.x.value;
         ZOOM_CONTAINER.y.value = node.y.value;
@@ -251,14 +280,31 @@ const ImageCropper = (
     };
   });
 
+  const onLayout = React.useCallback(
+    ({ nativeEvent }: LayoutChangeEvent) => {
+      const { height } = nativeEvent.layout;
+      if (height < viewHeight) {
+        viewScaleY.value = withTiming(0.72);
+        viewScaleX.value = withTiming(0.72);
+      }
+    },
+    [viewHeight, viewScaleX, viewScaleY]
+  );
+
+  const viewScaleAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scaleX: viewScaleX.value }, { scaleY: viewScaleY.value }],
+    };
+  });
+
   if (!init) {
     return null;
   }
-
+  //
   return (
-    <GestureHandlerRootView style={styles.containerT}>
+    <GestureHandlerRootView style={styles.containerT} onLayout={onLayout}>
       <View style={styles.containerT}>
-        <View style={styles.container}>
+        <Animated.View style={[styles.container, viewScaleAnimatedStyle]}>
           {imageUrl && (
             <Image
               source={{ uri: 'file://' + imageUrl }}
@@ -277,7 +323,7 @@ const ImageCropper = (
           )}
 
           {renderPoints([TOP_LEFT, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_RIGHT])}
-        </View>
+        </Animated.View>
         {imageUrl && (
           <Animated.View
             style={[styles.zoomContainer, animatedZoomImageContainer]}
@@ -353,7 +399,7 @@ const styles = StyleSheet.create({
     width: '100%',
     transform: [
       {
-        scale: 0.9,
+        scale: 0.95,
       },
     ],
   },
