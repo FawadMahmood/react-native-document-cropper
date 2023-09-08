@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     width: '100%',
     transform: [
       {
-        scale: 0.95,
+        scale: 0.9,
       },
     ],
   },
