@@ -7,6 +7,7 @@ interface ImageCropperProps {
     source: ImageURISource;
     cropperSignColor?: string;
     pointSize?: number;
+    fillColor?: string;
 }
 declare const _default: React.ForwardRefExoticComponent<ImageCropperProps & React.RefAttributes<ImageCropperRefOut>>;
 export default _default;
