@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { LayoutChangeEvent, type ImageURISource } from 'react-native';
+import type { LayoutChangeEvent, ImageURISource } from 'react-native';
 import { View, StyleSheet, Platform, Image, Dimensions } from 'react-native';
 import { cropPhoto, resolveImagePath } from './';
 import {
