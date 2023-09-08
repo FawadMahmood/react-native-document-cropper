@@ -197,7 +197,7 @@ const ImageCropper = (
 
   const publicRef: ImageCropperRefOut = {
     crop: () => {
-      return new Promise(async () => {
+      return new Promise(async (resolve) => {
         const coordinates = {
           topLeft: viewCoordinatesToImageCoordinates(
             // @ts-ignore
@@ -233,6 +233,7 @@ const ImageCropper = (
 
         const newPhotoUrl = await cropPhoto(coordinates, imageUrl);
         setImageUrl(newPhotoUrl);
+        resolve(newPhotoUrl);
         initiateCropper();
       });
     },
