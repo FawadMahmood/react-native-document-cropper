@@ -21,6 +21,6 @@ export interface IPoints {
 
 export interface CroppedPhotoResponse {
   uri: string;
-  height: number;
-  width: number;
+  height: Number;
+  width: Number;
 }

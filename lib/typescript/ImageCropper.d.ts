@@ -1,7 +1,8 @@
 import * as React from 'react';
 import type { ImageURISource } from 'react-native';
+import type { CroppedPhotoResponse } from './types';
 export interface ImageCropperRefOut {
-    crop: () => Promise<string>;
+    crop: () => Promise<CroppedPhotoResponse>;
 }
 interface ImageCropperProps {
     source: ImageURISource;
@@ -10,7 +11,6 @@ interface ImageCropperProps {
     fillColor?: string;
     handleBgColor?: string;
     handleBorderColor?: string;
-    noPreview?: boolean;
 }
 declare const _default: React.ForwardRefExoticComponent<ImageCropperProps & React.RefAttributes<ImageCropperRefOut>>;
 export default _default;
