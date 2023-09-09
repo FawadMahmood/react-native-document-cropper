@@ -37,10 +37,6 @@ public class DocumentCropperModule extends DocumentCropperSpec {
   public static final String NAME = "DocumentCropper";
   ReactApplicationContext context;
 
-  static {
-    System.loadLibrary("opencv_java3");
-  }
-
   DocumentCropperModule(ReactApplicationContext context) {
     super(context);
     this.context = context;
