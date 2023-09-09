@@ -264,7 +264,11 @@ const ImageCropper = (
         const newPhotoUrl = await cropPhoto(coordinates, imageUrl);
         setImageUrl(newPhotoUrl.uri);
         resolve(newPhotoUrl);
-        initiateCropper(newPhotoUrl.uri, newPhotoUrl.width, newPhotoUrl.height);
+        initiateCropper(
+          newPhotoUrl.uri,
+          newPhotoUrl.width as number,
+          newPhotoUrl.height as number
+        );
       });
     },
   };
