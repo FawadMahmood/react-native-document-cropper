@@ -13,6 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.UUID;
 
+import java.io.ByteArrayOutputStream;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -22,18 +23,14 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 
 
-import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Size;
-import org.opencv.imgcodecs.*;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
-
-import java.io.ByteArrayOutputStream;
-
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.Path;
+import android.graphics.PointF;
+import android.os.Bundle;
 
 
 public class DocumentCropperModule extends DocumentCropperSpec {
@@ -64,75 +61,87 @@ public class DocumentCropperModule extends DocumentCropperSpec {
 
   @ReactMethod
   public void crop(ReadableMap points, String imageUri, Promise promise) {
+    // Assuming you have your points as PointF objects
+    PointF tl = new PointF((float) points.getMap("topLeft").getDouble("x"), (float) points.getMap("topLeft").getDouble("y"));
+    PointF tr = new PointF((float) points.getMap("topRight").getDouble("x"), (float) points.getMap("topRight").getDouble("y"));
+    PointF bl = new PointF((float) points.getMap("bottomLeft").getDouble("x"), (float) points.getMap("bottomLeft").getDouble("y"));
+    PointF br = new PointF((float) points.getMap("bottomRight").getDouble("x"), (float) points.getMap("bottomRight").getDouble("y"));
 
-      Point tl = new Point(points.getMap("topLeft").getDouble("x"), points.getMap("topLeft").getDouble("y"));
-      Point tr = new Point(points.getMap("topRight").getDouble("x"), points.getMap("topRight").getDouble("y"));
-      Point bl = new Point(points.getMap("bottomLeft").getDouble("x"), points.getMap("bottomLeft").getDouble("y"));
-      Point br = new Point(points.getMap("bottomRight").getDouble("x"), points.getMap("bottomRight").getDouble("y"));
+    // Load the image
+    Bitmap srcBitmap = BitmapFactory.decodeFile(imageUri.replace("file://", ""));
 
-      Mat src = Imgcodecs.imread(imageUri.replace("file://", ""), Imgproc.COLOR_BGR2RGB);
-      Imgproc.cvtColor(src, src, Imgproc.COLOR_BGR2RGB);
-      Imgproc.resize(src, src, new Size(points.getDouble("width"), points.getDouble("height")));
+    // Define the new dimensions of the transformed image
+    int newWidth = (int) Math.max(Math.hypot(tr.x - tl.x, tr.y - tl.y), Math.hypot(br.x - bl.x, br.y - bl.y));
+    int newHeight = (int) Math.max(Math.hypot(bl.x - tl.x, bl.y - tl.y), Math.hypot(br.x - tr.x, br.y - tr.y));
 
-      boolean ratioAlreadyApplied = tr.x * (src.size().width / 500) < src.size().width;
-      double ratio = ratioAlreadyApplied ? src.size().width / 500 : 1;
+    // Create a new Bitmap for the transformed image
+    Bitmap dstBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
 
-      double widthA = Math.sqrt(Math.pow(br.x - bl.x, 2) + Math.pow(br.y - bl.y, 2));
-      double widthB = Math.sqrt(Math.pow(tr.x - tl.x, 2) + Math.pow(tr.y - tl.y, 2));
+    // Create a Canvas to draw on the new Bitmap
+    Canvas canvas = new Canvas(dstBitmap);
 
-      double dw = Math.max(widthA, widthB);
-      int maxWidth = Double.valueOf(dw).intValue();
+    // Create a Path representing the quadrilateral
+    Path path = new Path();
+    path.moveTo(tl.x, tl.y);
+    path.lineTo(tr.x, tr.y);
+    path.lineTo(br.x, br.y);
+    path.lineTo(bl.x, bl.y);
+    path.close();
 
-      double heightA = Math.sqrt(Math.pow(tr.x - br.x, 2) + Math.pow(tr.y - br.y, 2));
-      double heightB = Math.sqrt(Math.pow(tl.x - bl.x, 2) + Math.pow(tl.y - bl.y, 2));
+    // Create a Paint object for drawing
+    Paint paint = new Paint();
+    paint.setAntiAlias(true);
 
-      double dh = Math.max(heightA, heightB);
-      int maxHeight = Double.valueOf(dh).intValue();
+    // Create a Matrix for perspective transformation
+    Matrix matrix = new Matrix();
+    matrix.setPolyToPoly(new float[]{
+      tl.x, tl.y,
+      tr.x, tr.y,
+      br.x, br.y,
+      bl.x, bl.y
+    }, 0, new float[]{
+      0, 0,
+      newWidth, 0,
+      newWidth, newHeight,
+      0, newHeight
+    }, 0, 4);
 
-      Mat doc = new Mat(maxHeight, maxWidth, CvType.CV_8UC4);
+    // Apply the perspective transformation to the canvas
+    canvas.concat(matrix);
 
-      Mat src_mat = new Mat(4, 1, CvType.CV_32FC2);
-      Mat dst_mat = new Mat(4, 1, CvType.CV_32FC2);
+    // Draw the original image onto the transformed canvas
+    canvas.drawBitmap(srcBitmap, 0, 0, paint);
 
-      src_mat.put(0, 0, tl.x, tl.y, tr.x, tr.y, br.x, br.y, bl.x, bl.y);
-      dst_mat.put(0, 0, 0.0, 0.0, dw, 0.0, dw, dh, 0.0, dh);
+    // Now, 'dstBitmap' contains the perspective-transformed image
+    // You can convert it to a byte array if needed
+    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+    dstBitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
 
-      Mat m = Imgproc.getPerspectiveTransform(src_mat, dst_mat);
-
-      Imgproc.warpPerspective(src, doc, m, doc.size());
-
-      Bitmap bitmap = Bitmap.createBitmap(doc.cols(), doc.rows(), Bitmap.Config.ARGB_8888);
-      Utils.matToBitmap(doc, bitmap);
-
-      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-      bitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
-      byte[] byteArray = byteArrayOutputStream.toByteArray();
+    byte[] byteArray = byteArrayOutputStream.toByteArray();
 
       // Generate a random file name
-      String randomFileName = UUID.randomUUID().toString() + ".jpg";
-      File imageFile = new File(this.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), randomFileName);
+    String randomFileName = UUID.randomUUID().toString() + ".jpg";
+    File imageFile = new File(this.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), randomFileName);
 
-      try {
-        // Create a FileOutputStream for the image file
-        FileOutputStream fileOutputStream = new FileOutputStream(imageFile);
+    try {
+      // Create a FileOutputStream for the image file
+      FileOutputStream fileOutputStream = new FileOutputStream(imageFile);
 
-        // Write the byte array to the FileOutputStream
-        fileOutputStream.write(byteArray);
+      // Write the byte array to the FileOutputStream
+      fileOutputStream.write(byteArray);
 
-        // Close the FileOutputStream
-        fileOutputStream.close();
+      // Close the FileOutputStream
+      fileOutputStream.close();
 
-        // Get the absolute file path of the created image file
-        String imagePath = imageFile.getAbsolutePath();
+      // Get the absolute file path of the created image file
+      String imagePath = imageFile.getAbsolutePath();
 
-        promise.resolve(imagePath);
-        // Now, 'imagePath' contains the absolute file path of the image file
-      } catch (IOException e) {
-          e.printStackTrace();
-          // Handle any exceptions that may occur during file creation
-      }
-
-      m.release();
+      promise.resolve(imagePath);
+      // Now, 'imagePath' contains the absolute file path of the image file
+    } catch (IOException e) {
+        e.printStackTrace();
+        // Handle any exceptions that may occur during file creation
+    }
   }
 
 
