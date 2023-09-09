@@ -20,11 +20,13 @@ import {
 } from 'react-native-gesture-handler';
 
 import { Svg, Path } from 'react-native-svg';
+import type { CroppedPhotoResponse } from './types';
+import { ActivityIndicator } from 'react-native';
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
 const WINDOW_WIDTH = Dimensions.get('window').width;
 export interface ImageCropperRefOut {
-  crop: () => Promise<string>;
+  crop: () => Promise<CroppedPhotoResponse>;
 }
 interface ImageCropperProps {
   source: ImageURISource;
@@ -33,7 +35,6 @@ interface ImageCropperProps {
   fillColor?: string;
   handleBgColor?: string;
   handleBorderColor?: string;
-  noPreview?: boolean;
 }
 
 const ImageCropper = (
@@ -44,7 +45,6 @@ const ImageCropper = (
     fillColor,
     handleBgColor,
     handleBorderColor,
-    noPreview,
   }: ImageCropperProps,
   ref: React.Ref<ImageCropperRefOut>
 ) => {
@@ -93,58 +93,72 @@ const ImageCropper = (
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewHeight]);
 
-  const initiateCropper = async () => {
-    let imagePath = await resolveImagePath(source.uri as string);
+  const initiateCropper = async (
+    newImagePath?: string,
+    newWidth?: number,
+    newHeight?: number
+  ) => {
+    let imagePath = imageUrl
+      ? imageUrl
+      : await resolveImagePath((newImagePath || source.uri) as string);
     if (!imageUrl) setImageUrl(imagePath);
-    else imagePath = imageUrl;
-    Image.getSize(`file://` + imagePath, (width, height) => {
-      setWidth(width);
-      setHeight(height);
-      setViewHeight(Dimensions.get('window').width * (height / width));
+    // else imagePath = imageUrl;
+    Image.getSize(
+      `file://` + imagePath.replace('file://', ''),
+      (width, height) => {
+        setWidth(newWidth || width);
+        setHeight(newHeight || height);
+        const newViewHeight =
+          WINDOW_WIDTH * ((newHeight || height) / (newWidth || width));
+        setViewHeight(newViewHeight);
 
-      // setting top left initial values
-      const topLeftValues = getInitialValues(
-        { x: 0, y: 0 },
-        width,
-        height,
-        viewHeight
-      );
-      const topRightValues = getInitialValues(
-        { x: width, y: 0 },
-        width,
-        height,
-        viewHeight
-      );
-      const bottomLeftValues = getInitialValues(
-        { x: 0, y: height },
-        width,
-        height,
-        viewHeight
-      );
-      const bottomRightValues = getInitialValues(
-        { x: width, y: height },
-        width,
-        height,
-        viewHeight
-      );
+        const WIDTH = newWidth || width;
+        const HEIGHT = newHeight || height;
 
-      minWidth.value = topLeftValues.x;
-      maxWidth.value = bottomRightValues.x;
-      minHeight.value = topRightValues.y;
-      maxHeight.value = bottomRightValues.y;
+        // setting top left initial values
+        const topLeftValues = getInitialValues(
+          { x: 0, y: 0 },
+          WIDTH,
+          HEIGHT,
+          newViewHeight
+        );
+        const topRightValues = getInitialValues(
+          { x: width, y: 0 },
+          WIDTH,
+          HEIGHT,
+          newViewHeight
+        );
+        const bottomLeftValues = getInitialValues(
+          { x: 0, y: height },
+          WIDTH,
+          HEIGHT,
+          newViewHeight
+        );
+        const bottomRightValues = getInitialValues(
+          { x: width, y: height },
+          WIDTH,
+          HEIGHT,
+          newViewHeight
+        );
 
-      TOP_LEFT.x.value = withTiming(topLeftValues.x);
-      TOP_LEFT.y.value = withTiming(topLeftValues.y);
-      TOP_RIGHT.x.value = withTiming(topRightValues.x);
-      TOP_RIGHT.y.value = withTiming(topRightValues.y);
-      BOTTOM_LEFT.x.value = withTiming(bottomLeftValues.x);
-      BOTTOM_LEFT.y.value = withTiming(bottomLeftValues.y);
-      BOTTOM_RIGHT.x.value = withTiming(bottomRightValues.x);
-      BOTTOM_RIGHT.y.value = withTiming(bottomRightValues.y);
-      // setting top left initial values
+        minWidth.value = topLeftValues.x;
+        maxWidth.value = bottomRightValues.x;
+        minHeight.value = topRightValues.y;
+        maxHeight.value = bottomRightValues.y;
 
-      setInit(true);
-    });
+        TOP_LEFT.x.value = withTiming(topLeftValues.x);
+        TOP_LEFT.y.value = withTiming(topLeftValues.y);
+        TOP_RIGHT.x.value = withTiming(topRightValues.x);
+        TOP_RIGHT.y.value = withTiming(topRightValues.y);
+        BOTTOM_LEFT.x.value = withTiming(bottomLeftValues.x);
+        BOTTOM_LEFT.y.value = withTiming(bottomLeftValues.y);
+        BOTTOM_RIGHT.x.value = withTiming(bottomRightValues.x);
+        BOTTOM_RIGHT.y.value = withTiming(bottomRightValues.y);
+        // setting top left initial values
+
+        setInit(true);
+      }
+    );
   };
 
   const createAnimatedPanGesture = (node: any) => {
@@ -248,9 +262,9 @@ const ImageCropper = (
         };
 
         const newPhotoUrl = await cropPhoto(coordinates, imageUrl);
-        if (!noPreview) setImageUrl(newPhotoUrl);
+        setImageUrl(newPhotoUrl.uri);
         resolve(newPhotoUrl);
-        initiateCropper();
+        initiateCropper(newPhotoUrl.uri, newPhotoUrl.width, newPhotoUrl.height);
       });
     },
   };
@@ -315,7 +329,7 @@ const ImageCropper = (
   });
 
   if (!init) {
-    return null;
+    return <ActivityIndicator size={'small'} />;
   }
 
   return (

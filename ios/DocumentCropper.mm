@@ -105,10 +105,18 @@ RCT_EXPORT_METHOD(crop:(NSDictionary *)points imageUri:(NSString *)imageUri
 
     NSString *filePath = [imageSubdirectory stringByAppendingPathComponent:randomFileName];
     NSData *imageToEncode = UIImageJPEGRepresentation(image, 1);
+    CGFloat newWidth = image.size.width;
+    CGFloat newHeight = image.size.height;
+
     [imageToEncode writeToFile:filePath atomically:YES];
 
-    resolve(filePath);
-    // callback(@[[NSNull null], @{@"image": filePath }]);
+    NSMutableDictionary *imageInfo = [[NSMutableDictionary alloc] init];
+    [imageInfo setObject:filePath forKey:@"uri"];
+    [imageInfo setObject:@(newWidth) forKey:@"width"];
+    [imageInfo setObject:@(newHeight) forKey:@"height"];
+
+    // Now, 'imagePath' contains the absolute file path of the image file
+    resolve(imageInfo);
 }
 
 - (CGPoint)cartesianForPoint:(CGPoint)point height:(float)height {

@@ -31,6 +31,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.os.Bundle;
+import android.util.Log;
 
 
 public class DocumentCropperModule extends DocumentCropperSpec {
@@ -57,6 +58,7 @@ public class DocumentCropperModule extends DocumentCropperSpec {
 
   @ReactMethod
   public void crop(ReadableMap points, String imageUri, Promise promise) {
+    //Log.d("PATH", imageUri);
     // Assuming you have your points as PointF objects
     PointF tl = new PointF((float) points.getMap("topLeft").getDouble("x"), (float) points.getMap("topLeft").getDouble("y"));
     PointF tr = new PointF((float) points.getMap("topRight").getDouble("x"), (float) points.getMap("topRight").getDouble("y"));
@@ -69,6 +71,8 @@ public class DocumentCropperModule extends DocumentCropperSpec {
     // Define the new dimensions of the transformed image
     int newWidth = (int) Math.max(Math.hypot(tr.x - tl.x, tr.y - tl.y), Math.hypot(br.x - bl.x, br.y - bl.y));
     int newHeight = (int) Math.max(Math.hypot(bl.x - tl.x, bl.y - tl.y), Math.hypot(br.x - tr.x, br.y - tr.y));
+    //Log.d("PATH", newWidth + "");
+    //Log.d("PATH", newHeight + "");
 
     // Create a new Bitmap for the transformed image
     Bitmap dstBitmap = Bitmap.createBitmap(newWidth, newHeight, Bitmap.Config.ARGB_8888);
@@ -111,7 +115,7 @@ public class DocumentCropperModule extends DocumentCropperSpec {
     // Now, 'dstBitmap' contains the perspective-transformed image
     // You can convert it to a byte array if needed
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    dstBitmap.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+    dstBitmap.compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
 
     byte[] byteArray = byteArrayOutputStream.toByteArray();
 
@@ -132,7 +136,12 @@ public class DocumentCropperModule extends DocumentCropperSpec {
       // Get the absolute file path of the created image file
       String imagePath = imageFile.getAbsolutePath();
 
-      promise.resolve(imagePath);
+      WritableMap imageInfo = Arguments.createMap();
+      imageInfo.putString("uri",imagePath);
+      imageInfo.putDouble("width", newWidth);
+      imageInfo.putDouble("height",newHeight);
+
+      promise.resolve(imageInfo);
       // Now, 'imagePath' contains the absolute file path of the image file
     } catch (IOException e) {
         e.printStackTrace();
@@ -148,13 +157,14 @@ public class DocumentCropperModule extends DocumentCropperSpec {
             promise.resolve(imageInput);
         }
 
-        // Generate a random file name
-        String randomFileName = UUID.randomUUID().toString() + ".jpg";
-        File imagePath = new File(this.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), randomFileName);
-
         // Check if the input is a base64 encoded string
         if (imageInput.startsWith("data:image")) {
-            // Decode the base64 string and save it as a file
+            // Generate a random file name
+            String randomFileName = UUID.randomUUID().toString() + ".jpg";
+            File imagePath = new File(this.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), randomFileName);
+
+
+          // Decode the base64 string and save it as a file
             String[] parts = imageInput.split(",");
             if (parts.length == 2) {
                 String data = parts[1];
@@ -172,7 +182,7 @@ public class DocumentCropperModule extends DocumentCropperSpec {
         }
 
         // Handle other cases or return null if the input is not recognized
-        promise.resolve("");
+        promise.resolve(imageInput);
     } catch (IOException e) {
         e.printStackTrace();
         promise.resolve("");
