@@ -6,6 +6,7 @@ export interface Spec extends TurboModule {
   multiply(a: number, b: number): Promise<number>;
   resolveImagePath(image: string): Promise<string>;
   crop(points: IPoints, image: string): Promise<CroppedPhotoResponse>;
+  svgStringToJpg(svgString: String): Promise<string>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('DocumentCropper');

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$/../../../../node_modules/react-native/ReactCommon/callinvoker">
+      <sourceFolder url="file://$MODULE_DIR$/../../../../node_modules/react-native/ReactCommon/callinvoker" type="native-header-root" />
+    </content>
+    <content url="file://$USER_HOME$/.gradle/caches/transforms-3/1873d4775f8af415166279281e9acbcb/transformed/jetified-react-android-0.72.4-debug/prefab/modules/turbomodulejsijni/include">
+      <sourceFolder url="file://$USER_HOME$/.gradle/caches/transforms-3/1873d4775f8af415166279281e9acbcb/transformed/jetified-react-android-0.72.4-debug/prefab/modules/turbomodulejsijni/include" type="native-header-root" />
+    </content>
+    <content url="file://$MODULE_DIR$/../../../../node_modules/react-native/ReactCommon">
+      <sourceFolder url="file://$MODULE_DIR$/../../../../node_modules/react-native/ReactCommon" type="native-header-root" />
+      <sourceFolder url="file://$MODULE_DIR$/../../../../node_modules/react-native/ReactCommon/react/nativemodule/core" type="native-header-root" />
+    </content>
+    <content url="file://$MODULE_DIR$/../../../../node_modules/react-native/ReactCommon/jsi">
+      <sourceFolder url="file://$MODULE_DIR$/../../../../node_modules/react-native/ReactCommon/jsi" type="native-header-root" />
+    </content>
+    <content url="file://$MODULE_DIR$/../../../../node_modules/@shopify/react-native-skia/android/cpp">
+      <sourceFolder url="file://$MODULE_DIR$/../../../../node_modules/@shopify/react-native-skia/android/cpp" type="native-Source-root" />
+    </content>
+    <content url="file://$USER_HOME$/.gradle/caches/transforms-3/f59290add7436ddef5e4a363fccaf9f6/transformed/jetified-fbjni-0.3.0/prefab/modules/fbjni/include">
+      <sourceFolder url="file://$USER_HOME$/.gradle/caches/transforms-3/f59290add7436ddef5e4a363fccaf9f6/transformed/jetified-fbjni-0.3.0/prefab/modules/fbjni/include" type="native-header-root" />
+    </content>
+    <content url="file://$MODULE_DIR$/../../../../node_modules/@shopify/react-native-skia/cpp">
+      <sourceFolder url="file://$MODULE_DIR$/../../../../node_modules/@shopify/react-native-skia/cpp" type="native-Source-root" />
+    </content>
+    <content url="file://$USER_HOME$/.gradle/caches/transforms-3/1873d4775f8af415166279281e9acbcb/transformed/jetified-react-android-0.72.4-debug/prefab/modules/jsi/include">
+      <sourceFolder url="file://$USER_HOME$/.gradle/caches/transforms-3/1873d4775f8af415166279281e9acbcb/transformed/jetified-react-android-0.72.4-debug/prefab/modules/jsi/include" type="native-header-root" />
+    </content>
+    <content url="file://$USER_HOME$/.gradle/caches/transforms-3/1873d4775f8af415166279281e9acbcb/transformed/jetified-react-android-0.72.4-debug/prefab/modules/react_nativemodule_core/include">
+      <sourceFolder url="file://$USER_HOME$/.gradle/caches/transforms-3/1873d4775f8af415166279281e9acbcb/transformed/jetified-react-android-0.72.4-debug/prefab/modules/react_nativemodule_core/include" type="native-header-root" />
+    </content>
+  </component>
+</module>

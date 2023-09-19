@@ -41,4 +41,10 @@ export function cropPhoto(
   return DocumentCropper.crop(points, image);
 }
 
+export function svgStringToJpg(
+  svgString: String
+): Promise<CroppedPhotoResponse> {
+  return DocumentCropper.svgStringToJpg(svgString);
+}
+
 export default ImageCropper;
