@@ -61,7 +61,6 @@ public class DocumentCropperModule extends DocumentCropperSpec {
 
   @ReactMethod
   public void svgStringToJpg(String svgString, Promise promise) {
-    Log.d("SVG TRACE", svgString);
     Bitmap bitmap = this.convertSvgToBitmap(svgString);
 
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -72,7 +71,7 @@ public class DocumentCropperModule extends DocumentCropperSpec {
     String randomFileName = UUID.randomUUID().toString() + ".jpg";
     File imageFile = new File(this.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), randomFileName);
 
-    try{
+    try {
       FileOutputStream fileOutputStream = new FileOutputStream(imageFile);
 
       // Write the byte array to the FileOutputStream
@@ -85,12 +84,12 @@ public class DocumentCropperModule extends DocumentCropperSpec {
       String imagePath = imageFile.getAbsolutePath();
 
       promise.resolve(imagePath);
-    }catch(IOException e){
+    } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
-  public static Bitmap convertSvgToBitmap(String svgContent) {
+  public Bitmap convertSvgToBitmap(String svgContent) {
     try {
       SVG svg = SVG.getFromString(svgContent);
       Picture picture = svg.renderToPicture();
