@@ -11,7 +11,7 @@ export default function App() {
     testSvgConversion();
   }, []);
 
-  const testSvgConversion = async () =>{
+  const testSvgConversion = async () => {
     const svgConv = await svgStringToJpg(svgContent);
     console.log('svg', svgConv);
   };
