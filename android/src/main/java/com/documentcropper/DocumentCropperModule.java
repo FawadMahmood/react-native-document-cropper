@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Picture;
 import android.os.Environment;
 import android.util.Base64;
@@ -60,6 +61,7 @@ public class DocumentCropperModule extends DocumentCropperSpec {
 
   @ReactMethod
   public void svgStringToJpg(String svgString, Promise promise) {
+    Log.d("SVG TRACE", svgString);
     Bitmap bitmap = this.convertSvgToBitmap(svgString);
 
     ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -94,6 +96,7 @@ public class DocumentCropperModule extends DocumentCropperSpec {
       Picture picture = svg.renderToPicture();
       Bitmap bitmap = Bitmap.createBitmap(picture.getWidth(), picture.getHeight(), Bitmap.Config.ARGB_8888);
       Canvas canvas = new Canvas(bitmap);
+      canvas.drawColor(Color.WHITE);
       canvas.drawPicture(picture);
       return bitmap;
     } catch (SVGParseException e) {
