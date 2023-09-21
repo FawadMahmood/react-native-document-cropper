@@ -95,7 +95,10 @@ public class DocumentCropperModule extends DocumentCropperSpec {
 
   @ReactMethod
   public void bmpFileToJpg(String filePath, Promise promise) {
-    Bitmap srcBitmap = BitmapFactory.decodeFile(filePath.replace("file://", ""));
+    BitmapFactory.Options options = new BitmapFactory.Options();
+    options.inPreferredConfig = Bitmap.Config.ARGB_8888; // Adjust config as per your requirements
+
+    Bitmap srcBitmap = BitmapFactory.decodeFile(filePath.replace("file://", ""), options);
 
     // Generate a random file name
     String randomFileName = UUID.randomUUID().toString() + ".jpg";
