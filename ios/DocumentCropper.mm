@@ -46,8 +46,11 @@ RCT_EXPORT_METHOD(bmpFileToJpg:(NSString *)filePath
 {
     @try {
         NSString *parsedImageUri = [filePath stringByReplacingOccurrencesOfString:@"file://" withString:@""];
+
+        NSString *decodedString = [parsedImageUri stringByRemovingPercentEncoding];
+
         // Load the BMP image
-        UIImage *srcImage = [UIImage imageWithContentsOfFile:parsedImageUri];
+        UIImage *srcImage = [UIImage imageWithContentsOfFile:decodedString];
 
         // Ensure the image loaded successfully
         if (srcImage) {
