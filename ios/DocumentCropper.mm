@@ -16,6 +16,28 @@ RCT_EXPORT_METHOD(multiply:(double)a
     resolve(result);
 }
 
+RCT_EXPORT_METHOD(svgStringToJpg:(NSString *)svgString
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    SVGKImage *svgImage = [SVGKImage imageWithSource:[SVGKSourceString sourceFromContentsOfString:svgString]];
+        UIImage *image = svgImage.UIImage;
+
+        NSData *imageData = UIImageJPEGRepresentation(image, 1.0);
+        NSString *randomFileName = [[NSUUID UUID] UUIDString];
+        NSString *imagePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[randomFileName stringByAppendingString:@".jpg"]];
+
+        BOOL success = [imageData writeToFile:imagePath atomically:YES];
+
+        if (success) {
+            resolve(imagePath);
+        } else {
+            reject(@"CONVERSION_FAILED", @"Failed to convert SVG to JPG", nil);
+        }
+}
+
+
+
 RCT_EXPORT_METHOD(resolveImagePath:(NSString *)imageInput
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject)
