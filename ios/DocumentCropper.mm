@@ -33,7 +33,7 @@ RCT_EXPORT_METHOD(svgStringToJpg:(NSString *)svgString
             NSMutableDictionary *imageInfo = [[NSMutableDictionary alloc] init];
             [imageInfo setObject:imagePath forKey:@"uri"];
             [imageInfo setObject:@("image/jpg") forKey:@"type"];
-            
+
             resolve(imageInfo);
         } else {
             reject(@"CONVERSION_FAILED", @"Failed to convert SVG to JPG", nil);
@@ -45,9 +45,10 @@ RCT_EXPORT_METHOD(bmpFileToJpg:(NSString *)filePath
                   rejecter:(RCTPromiseRejectBlock)reject)
 {
     @try {
+        NSString *parsedImageUri = [filePath stringByReplacingOccurrencesOfString:@"file://" withString:@""];
         // Load the BMP image
-        UIImage *srcImage = [UIImage imageWithContentsOfFile:filePath];
-        
+        UIImage *srcImage = [UIImage imageWithContentsOfFile:parsedImageUri];
+
         // Ensure the image loaded successfully
         if (srcImage) {
             // Convert UIImage to JPG data
