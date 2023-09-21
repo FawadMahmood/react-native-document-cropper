@@ -45,6 +45,8 @@ target 'DocumentCropperExample' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
+  pod 'CocoaLumberjack', :modular_headers => true
+
   target 'DocumentCropperExampleTests' do
     inherit! :complete
     # Pods for testing

@@ -1,6 +1,10 @@
 import { NativeModules, Platform } from 'react-native';
 import ImageCropper from './ImageCropper';
-import type { CroppedPhotoResponse, IPoints } from './types';
+import type {
+  ConvertedImageResponse,
+  CroppedPhotoResponse,
+  IPoints,
+} from './types';
 
 const LINKING_ERROR =
   `The package 'react-native-document-cropper' doesn't seem to be linked. Make sure: \n\n` +
@@ -39,6 +43,18 @@ export function cropPhoto(
   image: string
 ): Promise<CroppedPhotoResponse> {
   return DocumentCropper.crop(points, image);
+}
+
+export function svgStringToJpg(
+  svgString: String
+): Promise<ConvertedImageResponse> {
+  return DocumentCropper.svgStringToJpg(svgString);
+}
+
+export function bmpFileToJpg(
+  filePath: String
+): Promise<ConvertedImageResponse> {
+  return DocumentCropper.bmpFileToJpg(filePath);
 }
 
 export default ImageCropper;
