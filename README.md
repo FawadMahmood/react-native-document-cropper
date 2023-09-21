@@ -1,4 +1,4 @@
-# react-native-document-cropper
+# react-native-document-cropper Document in progress
  Perpective image cropper for React Native
 
  ANDROID
