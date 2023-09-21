@@ -24,3 +24,8 @@ export interface CroppedPhotoResponse {
   height: Number;
   width: Number;
 }
+
+export interface ConvertedImageResponse {
+  uri: string;
+  type: string;
+}

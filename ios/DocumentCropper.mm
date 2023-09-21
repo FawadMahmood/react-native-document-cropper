@@ -30,13 +30,52 @@ RCT_EXPORT_METHOD(svgStringToJpg:(NSString *)svgString
         BOOL success = [imageData writeToFile:imagePath atomically:YES];
 
         if (success) {
-            resolve(imagePath);
+            NSMutableDictionary *imageInfo = [[NSMutableDictionary alloc] init];
+            [imageInfo setObject:imagePath forKey:@"uri"];
+            [imageInfo setObject:@("image/jpg") forKey:@"type"];
+            
+            resolve(imageInfo);
         } else {
             reject(@"CONVERSION_FAILED", @"Failed to convert SVG to JPG", nil);
         }
 }
 
+RCT_EXPORT_METHOD(bmpFileToJpg:(NSString *)filePath
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    @try {
+        // Load the BMP image
+        UIImage *srcImage = [UIImage imageWithContentsOfFile:filePath];
+        
+        // Ensure the image loaded successfully
+        if (srcImage) {
+            // Convert UIImage to JPG data
+            NSData *jpegData = UIImageJPEGRepresentation(srcImage, 1.0);
 
+            // Generate a random file name
+            NSString *randomFileName = [[NSUUID UUID] UUIDString];
+            NSString *jpgFilePath = [NSTemporaryDirectory() stringByAppendingPathComponent:[randomFileName stringByAppendingString:@".jpg"]];
+
+            // Save the JPEG data to a file
+            BOOL success = [jpegData writeToFile:jpgFilePath atomically:YES];
+
+            if (success) {
+                NSDictionary *imageInfo = @{
+                    @"uri": jpgFilePath,
+                    @"type": @"image/jpg"
+                };
+                resolve(imageInfo);
+            } else {
+                reject(@"CONVERSION_FAILED", @"Failed to save JPEG file", nil);
+            }
+        } else {
+            reject(@"CONVERSION_FAILED", @"Failed to load BMP image", nil);
+        }
+    } @catch (NSException *exception) {
+        reject(@"CONVERSION_FAILED", @"Error converting file type.", nil);
+    }
+}
 
 RCT_EXPORT_METHOD(resolveImagePath:(NSString *)imageInput
                   resolve:(RCTPromiseResolveBlock)resolve

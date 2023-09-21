@@ -81,11 +81,46 @@ public class DocumentCropperModule extends DocumentCropperSpec {
       fileOutputStream.close();
 
       // Get the absolute file path of the created image file
-      String imagePath = imageFile.getAbsolutePath();
 
-      promise.resolve(imagePath);
+      String imagePath = imageFile.getAbsolutePath();
+      WritableMap imageInfo = Arguments.createMap();
+      imageInfo.putString("uri", imagePath);
+      imageInfo.putString("type", "image/jpg");
+
+      promise.resolve(imageInfo);
     } catch (IOException e) {
       e.printStackTrace();
+    }
+  }
+
+  @ReactMethod
+  public void bmpFileToJpg(String filePath, Promise promise) {
+    Bitmap srcBitmap = BitmapFactory.decodeFile(filePath.replace("file://", ""));
+
+    // Generate a random file name
+    String randomFileName = UUID.randomUUID().toString() + ".jpg";
+    File imageFile = new File(this.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES), randomFileName);
+
+    try {
+      // Create a FileOutputStream for the image file
+      FileOutputStream fileOutputStream = new FileOutputStream(imageFile);
+
+      // Compress the BMP to a JPG with quality 100 (maximum)
+      srcBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+
+      // Close the output stream
+      fileOutputStream.close();
+
+      String imagePath = imageFile.getAbsolutePath();
+      WritableMap imageInfo = Arguments.createMap();
+      imageInfo.putString("uri", imagePath);
+      imageInfo.putString("type", "image/jpg");
+
+      promise.resolve(imageInfo);
+    } catch (IOException e) {
+      promise.reject("Error converting file type.");
+      e.printStackTrace();
+      // Handle any exceptions that may occur during file creation
     }
   }
 
