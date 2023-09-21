@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Picture;
+import android.net.Uri;
 import android.os.Environment;
 import android.util.Base64;
 
@@ -97,8 +98,9 @@ public class DocumentCropperModule extends DocumentCropperSpec {
   public void bmpFileToJpg(String filePath, Promise promise) {
     BitmapFactory.Options options = new BitmapFactory.Options();
     options.inPreferredConfig = Bitmap.Config.ARGB_8888; // Adjust config as per your requirements
+    Uri uri = Uri.parse(filePath);
 
-    Bitmap srcBitmap = BitmapFactory.decodeFile(filePath.replace("file://", ""), options);
+    Bitmap srcBitmap = BitmapFactory.decodeFile(uri.getPath().replace("file://", ""), options);
 
     // Generate a random file name
     String randomFileName = UUID.randomUUID().toString() + ".jpg";
