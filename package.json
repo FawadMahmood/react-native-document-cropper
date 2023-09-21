@@ -1,6 +1,6 @@
 {
   "name": "react-native-document-cropper",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "An image perspective cropper for React Native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
