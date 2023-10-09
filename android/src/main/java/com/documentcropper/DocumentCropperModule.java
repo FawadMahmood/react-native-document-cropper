@@ -90,7 +90,7 @@ public class DocumentCropperModule extends DocumentCropperSpec {
 
       promise.resolve(imageInfo);
     } catch (IOException e) {
-      e.printStackTrace();
+      promise.reject(e.toString());
     }
   }
 
@@ -123,9 +123,7 @@ public class DocumentCropperModule extends DocumentCropperSpec {
 
       promise.resolve(imageInfo);
     } catch (IOException e) {
-      promise.reject("Error converting file type.");
-      e.printStackTrace();
-      // Handle any exceptions that may occur during file creation
+      promise.reject(e.toString());
     }
   }
 
@@ -237,7 +235,7 @@ public class DocumentCropperModule extends DocumentCropperSpec {
       promise.resolve(imageInfo);
       // Now, 'imagePath' contains the absolute file path of the image file
     } catch (IOException e) {
-      e.printStackTrace();
+      promise.reject(e.toString());
       // Handle any exceptions that may occur during file creation
     }
   }
@@ -275,8 +273,7 @@ public class DocumentCropperModule extends DocumentCropperSpec {
       // Handle other cases or return null if the input is not recognized
       promise.resolve(imageInput);
     } catch (IOException e) {
-      e.printStackTrace();
-      promise.resolve("");
+      promise.reject(e.toString());
     }
   }
 }
