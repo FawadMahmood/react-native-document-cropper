@@ -378,7 +378,7 @@ PODS:
   - React-jsinspector (0.72.4)
   - React-logger (0.72.4):
     - glog
-  - react-native-document-cropper (0.7.0):
+  - react-native-document-cropper (0.8.2):
     - RCT-Folly (= 2021.07.22.00)
     - React-Core
     - SVGKit (~> 3.x)
@@ -752,7 +752,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: c7f826e40fa9cab5d37cab6130b1af237332b594
   React-jsinspector: aaed4cf551c4a1c98092436518c2d267b13a673f
   React-logger: da1ebe05ae06eb6db4b162202faeafac4b435e77
-  react-native-document-cropper: 4fed128759aa24346d4a560c598a5affb4de978d
+  react-native-document-cropper: 9495a27236bd70dbb5f30d561ff1fce80635a0f2
   react-native-skia: e385b516950c050926c1c8d5a2d5a9377842983f
   React-NativeModulesApple: edb5ace14f73f4969df6e7b1f3e41bef0012740f
   React-perflogger: 496a1a3dc6737f964107cb3ddae7f9e265ddda58
@@ -781,4 +781,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: a8f0873619826b0417f4dec712367cfcc793ff21
 
-COCOAPODS: 1.12.1
+COCOAPODS: 1.15.2
