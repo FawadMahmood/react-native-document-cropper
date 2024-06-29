@@ -7,7 +7,7 @@ export interface Spec extends TurboModule {
   multiply(a: number, b: number): Promise<number>;
   resolveImagePath(image: string): Promise<string>;
   crop(points: UnsafeObject, image: string): Promise<CroppedPhotoResponse>;
-  svgStringToJpg(svgString: String): Promise<ConvertedImageResponse>;
+  svgStringToJpg(svgString: string): Promise<ConvertedImageResponse>;
   bmpFileToJpg(filePath: string): Promise<ConvertedImageResponse>;
 }
 
